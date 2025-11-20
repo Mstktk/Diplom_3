@@ -1,11 +1,12 @@
 import pytest
+import allure
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
-from curls import Curls
+from curls import Urls
 from data import PersonalData
 from locators.login_page_locator import LoginPageLocator
 from locators.main_page_locator import MainPageLocator
@@ -27,7 +28,7 @@ def driver(request):
                 service = ChromeService(ChromeDriverManager().install())
                 driver = webdriver.Chrome(service=service, options=options)
             except Exception as e:
-                print(f"ChromeDriverManager failed: {e}")
+                allure.attach(str(e), name="ChromeDriverManager error", attachment_type=allure.attachment_type.TEXT)
                 driver = webdriver.Chrome(options=options)
                 
         elif browser_name == 'firefox':
@@ -39,7 +40,7 @@ def driver(request):
                 service = FirefoxService(GeckoDriverManager().install())
                 driver = webdriver.Firefox(service=service, options=options)
             except Exception as e:
-                print(f"GeckoDriverManager failed: {e}")
+                allure.attach(str(e), name="GeckoDriverManager error", attachment_type=allure.attachment_type.TEXT)
                 driver = webdriver.Firefox(options=options)
         
         if driver:
@@ -49,7 +50,7 @@ def driver(request):
         yield driver
         
     except Exception as e:
-        print(f"Error initializing {browser_name} driver: {e}")
+        allure.attach(str(e), name=f"Error initializing {browser_name} driver", attachment_type=allure.attachment_type.TEXT)
         pytest.skip(f"Could not initialize {browser_name} driver")
     
     finally:
@@ -63,7 +64,7 @@ def login_driver(driver):
 
     for attempt in range(attempts):
         try:
-            base_page.going_url(Curls.LOGIN_URL)
+            base_page.going_url(Urls.LOGIN_URL)
             base_page.wait_for_element(LoginPageLocator.EMAIL_FIELD, timeout=40)
             base_page.wait_for_element(LoginPageLocator.PASSWORD_FIELD, timeout=40)
 
@@ -80,7 +81,7 @@ def login_driver(driver):
             return driver
 
         except TimeoutException as exc:
-            print(f"Login attempt {attempt + 1} failed: {exc}")
+            allure.attach(str(exc), name=f"Login attempt {attempt + 1} failed", attachment_type=allure.attachment_type.TEXT)
             if attempt == attempts - 1:
                 raise
             driver.refresh()

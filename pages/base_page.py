@@ -72,7 +72,10 @@ class BasePage:
     @allure.step('Переход по ссылке')
     def going_url(self, url):
         self.driver.get(url)
-        time.sleep(2)
+        # Ждем загрузки страницы через ожидание body
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located(('tag name', 'body'))
+        )
 
     @allure.step('Перетащить элемент')
     def drag_and_drop_element(self, source, target):
@@ -81,3 +84,26 @@ class BasePage:
     @allure.step('Поиск элемента')
     def find_element(self, locator):
         return self.driver.find_element(*locator)
+    
+    @allure.step('Обновить страницу')
+    def refresh_page(self):
+        self.driver.refresh()
+    
+    @allure.step('Подождать изменения значения с polling')
+    def wait_with_polling(self, check_func, timeout=60, poll_frequency=3):
+        """Универсальный метод для polling с проверкой функции"""
+        end_time = time.time() + timeout
+        last_result = None
+        
+        while time.time() < end_time:
+            try:
+                result = check_func()
+                if result is not None and result is not False:
+                    return result
+                last_result = result
+            except Exception:
+                pass
+            
+            time.sleep(poll_frequency)
+        
+        return last_result

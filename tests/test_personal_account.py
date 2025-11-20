@@ -1,6 +1,6 @@
 import allure
 import pytest
-from curls import Curls
+from curls import Urls
 from locators.login_page_locator import LoginPageLocator
 from locators.personal_account_page_locator import PersonalAccountPageLocator
 from pages.personal_account_page import PersonalAccountPage
@@ -11,16 +11,16 @@ class TestPersonalAccount:
         personal_account_page = PersonalAccountPage(login_driver)
         personal_account_page.click_but_personal_account()
         personal_account_page.wait_load_page_personal_account()
-        assert personal_account_page.get_url_page() == Curls.PERSONAL_ACCOUNT_URL
+        assert personal_account_page.get_url_page() == Urls.PERSONAL_ACCOUNT_URL
 
     @pytest.mark.parametrize('locator_for_click, locator_for_wait, expected_result, name_test',
                              [(PersonalAccountPageLocator.ORDER_HISTORY_BUTTON,
                                PersonalAccountPageLocator.ACTIVE_ORDER_HISTORY_BUTTON,
-                               Curls.ORDER_HISTORY_URL,
+                               Urls.ORDER_HISTORY_URL,
                                'Тест перехода в раздел "История заказов"'),
                               (PersonalAccountPageLocator.EXIT_BUTTON,
                                LoginPageLocator.LOGIN_BUTTON,
-                               Curls.LOGIN_URL,
+                               Urls.LOGIN_URL,
                                'Тест выхода из аккаунта')])
     def test_click_but_exit_and_history(self, login_driver, locator_for_click,
                                         locator_for_wait, expected_result, name_test):

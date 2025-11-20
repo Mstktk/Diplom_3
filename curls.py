@@ -1,4 +1,4 @@
-class Curls:
+class Urls:
     MAIN_URL = 'https://stellarburgers.education-services.ru/'
     LOGIN_URL = 'https://stellarburgers.education-services.ru/login'
     FORGOT_PASSWORD_URL = 'https://stellarburgers.education-services.ru/forgot-password'

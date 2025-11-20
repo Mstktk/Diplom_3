@@ -1,7 +1,7 @@
 import allure
 import pytest
 import helpers
-from curls import Curls
+from curls import Urls
 from pages.main_page import MainPage
 from locators.main_page_locator import MainPageLocator
 
@@ -12,7 +12,7 @@ class TestCheckBasicFunction:
         main_page.going_page_login()
         main_page.click_but_constructor()
         main_page.wait_load_main_page()
-        assert main_page.get_url() == Curls.MAIN_URL
+        assert main_page.get_url() == Urls.MAIN_URL
 
     @allure.title('Тест перехода по клику на "Лента заказов"')
     def test_click_but_feed_order(self, driver):
@@ -20,7 +20,7 @@ class TestCheckBasicFunction:
         main_page.going_main_page()
         main_page.click_but_feed_order()
         main_page.wait_load_page_feed_order()
-        assert main_page.get_url() == Curls.FEED_URL
+        assert main_page.get_url() == Urls.FEED_URL
 
     @pytest.mark.parametrize('category', ['buns', 'souses', 'toppings'])
     @allure.title('Тест клика на ингредиент')
@@ -31,7 +31,7 @@ class TestCheckBasicFunction:
         main_page.scroll_to_element_page(locator[1])
         main_page.click_ingredient(locator[1])
         assert main_page.wait_load_card_ingredient()
-        expected_url_part = Curls.INGREDIENT_LINK[category][locator[0]]
+        expected_url_part = Urls.INGREDIENT_LINK[category][locator[0]]
         assert expected_url_part in main_page.get_url_page()
 
     @pytest.mark.parametrize('category', ['buns', 'souses', 'toppings'])

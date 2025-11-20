@@ -1,6 +1,6 @@
 import allure
 
-from curls import Curls
+from curls import Urls
 from data import PersonalData
 from pages.base_page import BasePage
 from locators.login_page_locator import LoginPageLocator
@@ -42,11 +42,11 @@ class RecoveryPasswordPage(BasePage):
 
     @allure.step('Переход на страницу авторизации')
     def going_page_login(self):
-        self.going_url(Curls.LOGIN_URL)
+        self.going_url(Urls.LOGIN_URL)
 
     @allure.step('Переход на страницу восстановления пароля')
     def going_page_recovery_password(self):
-        self.going_url(Curls.FORGOT_PASSWORD_URL)
+        self.going_url(Urls.FORGOT_PASSWORD_URL)
 
     @allure.step('сс текущего URL страницы')
     def get_url_page(self):

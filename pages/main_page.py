@@ -1,6 +1,6 @@
 import allure
 import time
-from curls import Curls
+from curls import Urls
 from locators.order_feed_page_locator import OrderFeedLocator
 from pages.base_page import BasePage
 from locators.main_page_locator import MainPageLocator
@@ -33,11 +33,11 @@ class MainPage(BasePage):
 
     @allure.step('Переход на страницу авторизации')
     def going_page_login(self):
-        self.going_url(Curls.LOGIN_URL)
+        self.going_url(Urls.LOGIN_URL)
 
     @allure.step('Переход на главную страницу')
     def going_main_page(self):
-        self.going_url(Curls.MAIN_URL)
+        self.going_url(Urls.MAIN_URL)
 
     @allure.step('Подождать загрузки главной страницы')
     def wait_load_main_page(self):
@@ -86,7 +86,7 @@ class MainPage(BasePage):
         self.going_main_page()
         self.wait_load_main_page()
         self.scroll_to_element(locator[1])
-        time.sleep(1)
+        self.wait_for_element(locator[1])
         self.click_ingredient(locator[1])
         self.wait_load_card_ingredient()
 
@@ -96,7 +96,8 @@ class MainPage(BasePage):
         source = self.find_element(locator)
         target = self.find_element(MainPageLocator.BURGER_CONSTRUCTOR)
         self.drag_and_drop_element(source, target)
-        time.sleep(1)
+        # Ждем обновления счетчика ингредиента
+        self.wait_for_element(MainPageLocator.BURGER_CONSTRUCTOR)
 
     @allure.step('Получить количество добавленных ингредиентов')
     def get_count_element(self, locator):
@@ -114,12 +115,12 @@ class MainPage(BasePage):
     def add_ingredient_in_burger(self):
         bun_locator = self.get_locator_ingredient('buns')
         self.drag_and_drop_ingredient(bun_locator[1])
-        time.sleep(1)
+        self.wait_for_element(MainPageLocator.BURGER_CONSTRUCTOR)
 
         sauces_locator = self.get_locator_ingredient('souses')
         self.drag_and_drop_ingredient(sauces_locator[1])
-        time.sleep(1)
+        self.wait_for_element(MainPageLocator.BURGER_CONSTRUCTOR)
 
         toppings_locator = self.get_locator_ingredient('toppings')
         self.drag_and_drop_ingredient(toppings_locator[1])
-        time.sleep(1)
+        self.wait_for_element(MainPageLocator.BURGER_CONSTRUCTOR)

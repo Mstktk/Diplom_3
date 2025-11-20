@@ -28,21 +28,19 @@ class TestOrderFeed:
         new_order_text = order_feed_page.wait_new_order_in_history(previous_order_text)
 
         order_id_match = re.search(r'\d+', new_order_text)
-        if not order_id_match:
-            pytest.fail(f"Не удалось извлечь номер заказа из истории: {new_order_text}")
+        assert order_id_match is not None, f"Не удалось извлечь номер заказа из истории: {new_order_text}"
 
         order_id = order_id_match.group()
         order_feed_page.going_in_feed_order()
 
         in_work = order_feed_page.wait_for_order_id_in_work(order_id)
-        if not in_work:
-            ready = order_feed_page.wait_for_order_id_ready(order_id)
-            if not ready:
-                api_found = order_feed_page.wait_order_in_feed_api(order_id)
-                assert api_found, (
-                    f"Заказ {order_id} не найден ни в разделе 'В работе', "
-                    f"ни в разделе 'Готовы', ни в API ленты"
-                )
+        ready = order_feed_page.wait_for_order_id_ready(order_id)
+        api_found = order_feed_page.wait_order_in_feed_api(order_id)
+        
+        assert in_work or ready or api_found, (
+            f"Заказ {order_id} не найден ни в разделе 'В работе', "
+            f"ни в разделе 'Готовы', ни в API ленты"
+        )
 
     @pytest.mark.parametrize(
         'locator, stat_key, name_test',
@@ -73,17 +71,15 @@ class TestOrderFeed:
         
         order_feed_page.going_in_feed_order()
         new_value = order_feed_page.wait_count_orders_increase(locator, old_value)
-
-        if new_value <= old_value:
-            api_value = order_feed_page.wait_feed_stat_increase(stat_key, old_value)
-            assert api_value > old_value, (
-                f"Счетчик по API не увеличился: было {old_value}, стало {api_value}"
-            )
-            order_feed_page.going_in_feed_order()
-            ui_value = order_feed_page.get_count_orders(locator)
-            assert ui_value == api_value, (
-                f"Значение на UI ({ui_value}) не совпадает с API ({api_value}) "
-                f"для {name_test}"
-            )
-        else:
-            assert new_value > old_value, f"Счетчик не увеличился: было {old_value}, стало {new_value}"
+        
+        api_value = order_feed_page.wait_feed_stat_increase(stat_key, old_value)
+        assert api_value > old_value, (
+            f"Счетчик по API не увеличился: было {old_value}, стало {api_value}"
+        )
+        
+        order_feed_page.going_in_feed_order()
+        ui_value = order_feed_page.get_count_orders(locator)
+        assert ui_value == api_value, (
+            f"Значение на UI ({ui_value}) не совпадает с API ({api_value}) "
+            f"для {name_test}"
+        )
