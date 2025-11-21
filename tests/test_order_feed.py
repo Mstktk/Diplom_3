@@ -11,6 +11,7 @@ class TestOrderFeed:
 
     @allure.title('Тест появления номера заказа в разделе "В работе" после оформления заказа')
     def test_display_order_(self, login_driver):
+        # Setup: получаем предыдущий заказ
         order_feed_page = OrderFeedPage(login_driver)
         order_feed_page.going_in_order_history()
         try:
@@ -18,25 +19,28 @@ class TestOrderFeed:
         except Exception:
             previous_order_text = ""
 
+        # Action: создаем новый заказ
         main_page = MainPage(login_driver)
         main_page.going_main_page()
         main_page.add_ingredient_in_burger()
         main_page.click_but_create_order()
         main_page.wait_load_order_card()
 
+        # Action: получаем новый заказ из истории
         order_feed_page.going_in_order_history()
         new_order_text = order_feed_page.wait_new_order_in_history(previous_order_text)
 
+        # Action: извлекаем ID заказа и проверяем его наличие в разных местах
         order_id_match = re.search(r'\d+', new_order_text)
-        assert order_id_match is not None, f"Не удалось извлечь номер заказа из истории: {new_order_text}"
-
-        order_id = order_id_match.group()
+        order_id = order_id_match.group() if order_id_match else None
+        
         order_feed_page.going_in_feed_order()
-
         in_work = order_feed_page.wait_for_order_id_in_work(order_id)
         ready = order_feed_page.wait_for_order_id_ready(order_id)
         api_found = order_feed_page.wait_order_in_feed_api(order_id)
         
+        # Assertion: все проверки в конце
+        assert order_id_match is not None, f"Не удалось извлечь номер заказа из истории: {new_order_text}"
         assert in_work or ready or api_found, (
             f"Заказ {order_id} не найден ни в разделе 'В работе', "
             f"ни в разделе 'Готовы', ни в API ленты"
@@ -59,26 +63,30 @@ class TestOrderFeed:
     )
     def test_count_orders_in_feed_order_page(self, login_driver, locator, stat_key, name_test):
         allure.dynamic.title(name_test)
+        # Setup: получаем начальное значение счетчика
         order_feed_page = OrderFeedPage(login_driver)
         order_feed_page.going_in_feed_order()
         old_value = order_feed_page.get_count_orders(locator)
         
+        # Action: создаем новый заказ
         main_page = MainPage(login_driver)
         main_page.going_main_page()
         main_page.add_ingredient_in_burger()
         main_page.click_but_create_order()
         main_page.wait_load_order_card()
         
+        # Action: получаем значения после создания заказа
         order_feed_page.going_in_feed_order()
         new_value = order_feed_page.wait_count_orders_increase(locator, old_value)
-        
         api_value = order_feed_page.wait_feed_stat_increase(stat_key, old_value)
-        assert api_value > old_value, (
-            f"Счетчик по API не увеличился: было {old_value}, стало {api_value}"
-        )
         
         order_feed_page.going_in_feed_order()
         ui_value = order_feed_page.get_count_orders(locator)
+        
+        # Assertion: все проверки в конце
+        assert api_value > old_value, (
+            f"Счетчик по API не увеличился: было {old_value}, стало {api_value}"
+        )
         assert ui_value == api_value, (
             f"Значение на UI ({ui_value}) не совпадает с API ({api_value}) "
             f"для {name_test}"
