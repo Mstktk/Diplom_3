@@ -1,0 +1,109 @@
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import allure
+import time
+from seletools.actions import drag_and_drop
+
+class BasePage:
+    def __init__(self, driver):
+        self.driver = driver
+
+    @allure.step('Подождать изменения текста в элементе')
+    def wait_change_element(self, locator, element_text, timeout=15):
+        return WebDriverWait(self.driver, timeout).until(
+            lambda d: ((element := d.find_element(*locator)) and element.text != element_text and element.text)
+        )
+
+    @allure.step('Подождать загрузку всех элементов по локатору')
+    def wait_load_all_elements(self, locator, timeout=15):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.visibility_of_all_elements_located(locator)
+        )
+
+    @allure.step('Подождать видимость элемента')
+    def wait_for_element(self, locator, timeout=15):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.visibility_of_element_located(locator)
+        )
+
+    @allure.step('Подождать кликабельности элемента')
+    def wait_clickable_element(self, locator, timeout=15):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.element_to_be_clickable(locator)
+        )
+
+    @allure.step('Подождать скрытия элемента')
+    def wait_hide_element(self, locator, timeout=15):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.invisibility_of_element_located(locator)
+        )
+
+    @allure.step('Кликнуть на элемент')
+    def click_on_element(self, locator, timeout=15):
+        element = self.wait_clickable_element(locator, timeout)
+        time.sleep(0.5)
+        element.click()
+
+    @allure.step('Скролл до элемента')
+    def scroll_to_element(self, locator, timeout=15):
+        element = self.wait_for_element(locator, timeout)
+        self.driver.execute_script('arguments[0].scrollIntoView({block: "center"});', element)
+
+    @allure.step('Ввод текста в поле')
+    def send_text_to_input(self, locator, text, timeout=15):
+        element = self.wait_for_element(locator, timeout)
+        element.clear()
+        element.send_keys(text)
+
+    @allure.step('Получить текст элемента')
+    def get_text_on_element(self, locator, timeout=15):
+        element = self.wait_for_element(locator, timeout)
+        return element.text
+
+    @allure.step('Получить атрибут элемента')
+    def get_attribute_on_element(self, locator, attribute, timeout=15):
+        element = self.wait_for_element(locator, timeout)
+        return element.get_attribute(attribute)
+
+    @allure.step('Получить URL страницы')
+    def get_url(self):
+        return self.driver.current_url
+
+    @allure.step('Переход по ссылке')
+    def going_url(self, url):
+        self.driver.get(url)
+        # Ждем загрузки страницы через ожидание body
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located(('tag name', 'body'))
+        )
+
+    @allure.step('Перетащить элемент')
+    def drag_and_drop_element(self, source, target):
+        drag_and_drop(self.driver, source, target)
+
+    @allure.step('Поиск элемента')
+    def find_element(self, locator):
+        return self.driver.find_element(*locator)
+    
+    @allure.step('Обновить страницу')
+    def refresh_page(self):
+        self.driver.refresh()
+    
+    @allure.step('Подождать изменения значения с polling')
+    def wait_with_polling(self, check_func, timeout=60, poll_frequency=3):
+        """Универсальный метод для polling с проверкой функции"""
+        end_time = time.time() + timeout
+        last_result = None
+        
+        while time.time() < end_time:
+            try:
+                result = check_func()
+                if result is not None and result is not False:
+                    return result
+                last_result = result
+            except Exception:
+                pass
+            
+            time.sleep(poll_frequency)
+        
+        return last_result
